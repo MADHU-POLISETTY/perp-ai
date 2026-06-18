@@ -17,14 +17,18 @@ def clean_scenario_name(method_name):
         parts = parts[1:]
     return " ".join(part.capitalize() for part in parts)
 
-def get_component_name(method_name):
+def get_component_name(test, method_name):
     method_lower = method_name.lower()
-    if "auth" in method_lower:
+    class_name = test.__class__.__name__.lower()
+    module_name = test.__class__.__module__.lower()
+    
+    if "mobile_features" in method_lower or "mobile_features" in module_name or "testmobilefeatures" in class_name:
+        return "Mobile Features"
+    elif "mobile_navigation" in method_lower or "mobile_navigation" in module_name or "testmobilenavigation" in class_name:
+        return "Mobile Navigation"
+    
+    if "auth" in method_lower or "login" in method_lower or "registration" in method_lower or "landing" in method_lower:
         return "Authentication"
-    elif "landing" in method_lower:
-        return "Landing Page"
-    elif "dashboard" in method_lower or "sidebar" in method_lower or "menu" in method_lower or "hamburger" in method_lower:
-        return "Dashboard / Sidebar"
     elif "session" in method_lower or "question" in method_lower or "answer" in method_lower or "coaching" in method_lower:
         return "Interview Session"
     elif "results" in method_lower or "gauge" in method_lower:
@@ -36,7 +40,7 @@ def get_component_name(method_name):
     elif "profile" in method_lower or "charts" in method_lower or "analytics" in method_lower:
         return "Candidate Analytics"
     else:
-        return "General System"
+        return "Dashboard"
 
 def main():
     print("=" * 80)
@@ -64,9 +68,9 @@ def main():
         def addSuccess(self, test):
             elapsed = time.time() - self._start_time
             method_name = test._testMethodName
-            category = "Appium (Mobile)" if "appium" in test.__class__.__module__.lower() else "Selenium (Desktop)"
+            category = "Appium (Mobile)" if ("appium" in test.__class__.__module__.lower() or "mobile" in method_name.lower()) else "Selenium (Desktop)"
             scenario = test._testMethodDoc or clean_scenario_name(method_name)
-            component = get_component_name(method_name)
+            component = get_component_name(test, method_name)
             
             test_results.append({
                 "id": f"TS-{len(test_results) + 1:03d}",
@@ -83,9 +87,9 @@ def main():
         def addFailure(self, test, err):
             elapsed = time.time() - self._start_time
             method_name = test._testMethodName
-            category = "Appium (Mobile)" if "appium" in test.__class__.__module__.lower() else "Selenium (Desktop)"
+            category = "Appium (Mobile)" if ("appium" in test.__class__.__module__.lower() or "mobile" in method_name.lower()) else "Selenium (Desktop)"
             scenario = test._testMethodDoc or clean_scenario_name(method_name)
-            component = get_component_name(method_name)
+            component = get_component_name(test, method_name)
             error_details = self._exc_info_to_string(err, test)
             
             # Screenshot capture on failure
@@ -117,9 +121,9 @@ def main():
         def addError(self, test, err):
             elapsed = time.time() - self._start_time
             method_name = test._testMethodName
-            category = "Appium (Mobile)" if "appium" in test.__class__.__module__.lower() else "Selenium (Desktop)"
+            category = "Appium (Mobile)" if ("appium" in test.__class__.__module__.lower() or "mobile" in method_name.lower()) else "Selenium (Desktop)"
             scenario = test._testMethodDoc or clean_scenario_name(method_name)
-            component = get_component_name(method_name)
+            component = get_component_name(test, method_name)
             error_details = self._exc_info_to_string(err, test)
             
             # Screenshot capture on error
@@ -720,6 +724,73 @@ def main():
     with open(html_output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
     print(f"Styled HTML report saved successfully to: {html_output_path}")
+
+    # Write to GitHub Step Summary if running in GitHub Actions CI
+    step_summary_path = os.getenv("GITHUB_STEP_SUMMARY")
+    if step_summary_path:
+        print("Writing job summary to GITHUB_STEP_SUMMARY...")
+        try:
+            with open(step_summary_path, "a", encoding="utf-8") as sf:
+                sf.write("## Prep-AI Test Execution Dashboard\n\n")
+                
+                # Table 1: Overall Results
+                sf.write("### Overall Results\n\n")
+                sf.write("| Metric | Value |\n")
+                sf.write("| ----------- | ----- |\n")
+                sf.write(f"| Total Tests | {total_run} |\n")
+                sf.write(f"| Passed      | {passes} |\n")
+                sf.write(f"| Failed      | {failures} |\n")
+                sf.write(f"| Pass Rate   | {pass_rate_pct:.1f}% |\n\n")
+                
+                # Table 2: Module Breakdown
+                sf.write("### Module Breakdown\n\n")
+                sf.write("| Module | Status |\n")
+                sf.write("| ------------------- | ------ |\n")
+                
+                required_modules = [
+                    "Authentication",
+                    "Dashboard",
+                    "Interview Session",
+                    "Candidate Analytics",
+                    "Resume Analyzer",
+                    "Evaluation Results",
+                    "Histories & Logs",
+                    "Mobile Features",
+                    "Mobile Navigation"
+                ]
+                
+                module_status = {mod: "Passed" for mod in required_modules}
+                for r in test_results:
+                    mod = r["component"]
+                    status = r["status"]
+                    if mod in module_status:
+                        if "FAIL" in status:
+                            module_status[mod] = "Failed"
+                            
+                for mod in required_modules:
+                    sf.write(f"| {mod} | {module_status[mod]} |\n")
+                sf.write("\n")
+                
+                # Table 3: Failed Test Details
+                failed_tests = [r for r in test_results if "FAIL" in r["status"]]
+                if failed_tests:
+                    sf.write("### Failed Test Details\n\n")
+                    sf.write("| Test ID | Module | Error |\n")
+                    sf.write("| ------- | ----------------- | ------------------------ |\n")
+                    for ft in failed_tests:
+                        # Extract first line of error or simplified message
+                        err_msg = ft["error"]
+                        if "No module named 'appium'" in ft["error"]:
+                            err_msg = "No module named 'appium'"
+                        else:
+                            err_lines = [line.strip() for line in ft["error"].split("\n") if line.strip()]
+                            if err_lines:
+                                err_msg = err_lines[-1]
+                        sf.write(f"| {ft['id']} | {ft['component']} | {err_msg} |\n")
+                    sf.write("\n")
+        except Exception as e:
+            print(f"Failed to write GITHUB_STEP_SUMMARY: {e}")
+
     print("=" * 80)
 
 if __name__ == "__main__":
