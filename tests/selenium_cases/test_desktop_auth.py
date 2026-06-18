@@ -15,7 +15,7 @@ class TestDesktopAuth(unittest.TestCase):
         cls.driver.quit()
 
     def setUp(self):
-        self.driver.get("http://localhost:5173/auth")
+        self.driver.get("http://localhost:3000/auth")
         self.auth_page = AuthPage(self.driver)
         self.landing_page = LandingPage(self.driver)
         self.dashboard_page = DashboardPage(self.driver)
@@ -143,7 +143,7 @@ class TestDesktopAuth(unittest.TestCase):
     def test_simulate_successful_login(self):
         """Verify login redirects to dashboard upon success."""
         self.auth_page.login("p.jmanoj378@gmail.com", "password123")
-        self.driver.get("http://localhost:5173/dashboard")
+        self.driver.get("http://localhost:3000/dashboard")
         self.assertIn("dashboard", self.driver.current_url)
 
     # 22. Simulate registration submission success
@@ -151,14 +151,14 @@ class TestDesktopAuth(unittest.TestCase):
         """Verify registration redirects to dashboard upon success."""
         self.auth_page.switch_auth_mode()
         self.auth_page.login("new_tester@gmail.com", "secure_pass123")
-        self.driver.get("http://localhost:5173/dashboard")
+        self.driver.get("http://localhost:3000/dashboard")
         self.assertIn("dashboard", self.driver.current_url)
 
     # 23. Google auth flow redirection simulation
     def test_google_sign_in_click(self):
         """Verify Google Sign In redirects to dashboard."""
         self.auth_page.click_google_sign_in()
-        self.driver.get("http://localhost:5173/dashboard")
+        self.driver.get("http://localhost:3000/dashboard")
         self.assertIn("dashboard", self.driver.current_url)
 
     # 24. Auth error for invalid credentials
@@ -171,14 +171,14 @@ class TestDesktopAuth(unittest.TestCase):
     def test_back_to_homepage_click(self):
         """Verify back link returns to landing page."""
         self.auth_page.click_back_link()
-        self.driver.get("http://localhost:5173/landing")
+        self.driver.get("http://localhost:3000/landing")
         self.assertIn("landing", self.driver.current_url)
 
     # 26. Session persistence after page refresh
     def test_session_persistence_after_refresh(self):
         """Verify auth session persists after page refresh."""
         self.auth_page.login("p.jmanoj378@gmail.com", "password123")
-        self.driver.get("http://localhost:5173/dashboard")
+        self.driver.get("http://localhost:3000/dashboard")
         self.assertIn("dashboard", self.driver.current_url)
         self.driver.refresh()
         self.assertIn("dashboard", self.driver.current_url)
@@ -187,21 +187,21 @@ class TestDesktopAuth(unittest.TestCase):
     def test_logout_functionality(self):
         """Verify logging out takes user back to landing page."""
         self.auth_page.login("p.jmanoj378@gmail.com", "password123")
-        self.driver.get("http://localhost:5173/dashboard")
+        self.driver.get("http://localhost:3000/dashboard")
         self.dashboard_page.sign_out()
-        self.driver.get("http://localhost:5173/landing")
+        self.driver.get("http://localhost:3000/landing")
         self.assertIn("landing", self.driver.current_url)
 
     # 28. Unauthorized access after logout
     def test_unauthorized_access_after_logout(self):
         """Verify dashboard is protected and redirects back when unauthenticated."""
         self.auth_page.login("p.jmanoj378@gmail.com", "password123")
-        self.driver.get("http://localhost:5173/dashboard")
+        self.driver.get("http://localhost:3000/dashboard")
         self.dashboard_page.sign_out()
         # Attempt to access dashboard route directly
-        self.driver.get("http://localhost:5173/dashboard")
+        self.driver.get("http://localhost:3000/dashboard")
         # In actual app, redirect triggers. Mock mode simulates redirect:
-        self.driver.get("http://localhost:5173/landing")
+        self.driver.get("http://localhost:3000/landing")
         self.assertIn("landing", self.driver.current_url)
 
 if __name__ == '__main__':

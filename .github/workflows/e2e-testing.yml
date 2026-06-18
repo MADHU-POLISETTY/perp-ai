@@ -52,7 +52,7 @@ jobs:
         run: |
           npm run dev &
           echo "Waiting for dev server to start..."
-          npx wait-on http://localhost:5173 --timeout 60000
+          npx wait-on http://localhost:3000 --timeout 60000
 
       - name: Run Selenium E2E Test Suite
         run: |
