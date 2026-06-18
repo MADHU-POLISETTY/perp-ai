@@ -50,9 +50,17 @@ jobs:
 
       - name: Start React Frontend Server
         run: |
-          npm run dev &
-          echo "Waiting for dev server to start..."
-          npx wait-on http://localhost:3000 --timeout 60000
+          npm run dev > frontend.log 2>&1 &
+          echo "Waiting for frontend dev server to start..."
+          sleep 3
+          # Check if server is running on port 5173 or 3000
+          if lsof -Pi :5173 -sTCP:LISTEN -t >/dev/null 2>&1; then
+            echo "Frontend running on http://localhost:5173"
+            npx wait-on http://localhost:5173 --timeout 60000
+          else
+            echo "Frontend running on http://localhost:3000"
+            npx wait-on http://localhost:3000 --timeout 60000
+          fi
 
       - name: Run Selenium E2E Test Suite
         run: |
