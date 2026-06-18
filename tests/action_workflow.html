@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prep-AI Actionable QA Workflow Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #030303;
+            --card-bg: #09090b;
+            --border-color: #1f1f23;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --emerald: #10b981;
+            --rose: #f43f5e;
+            --amber: #f59e0b;
+            --purple: #a855f7;
+            --blue: #3b82f6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2.5rem;
+            line-height: 1.5;
+        }
+
+        header {
+            max-width: 1400px;
+            margin: 0 auto 2.5rem auto;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .header-title p {
+            margin: 0.25rem 0 0 0;
+            font-size: 0.875rem;
+            color: var(--emerald);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .save-btn {
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+            transition: opacity 0.2s;
+        }
+
+        .save-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Dashboard Statistics */
+        .dashboard-metrics {
+            max-width: 1400px;
+            margin: 0 auto 2.5rem auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .metric-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .metric-card.total::before { background-color: var(--text-secondary); }
+        .metric-card.passed::before { background-color: var(--emerald); }
+        .metric-card.failed::before { background-color: var(--rose); }
+        .metric-card.bugs::before { background-color: var(--purple); }
+        .metric-card.readiness::before { background-color: var(--amber); }
+
+        .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+
+        /* Filters Controls */
+        .filters-section {
+            max-width: 1400px;
+            margin: 0 auto 1.5rem auto;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .filter-group label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .filter-select {
+            background-color: #121214;
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            font-family: inherit;
+            font-size: 0.8rem;
+            outline: none;
+            width: 180px;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            border-color: #ffffff;
+        }
+
+        /* Workflows Sections */
+        .section-container {
+            max-width: 1400px;
+            margin: 0 auto 3rem auto;
+        }
+
+        .section-header {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin: 0;
+            text-transform: uppercase;
+            border-left: 3px solid #ffffff;
+            padding-left: 0.75rem;
+        }
+
+        .table-wrapper {
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: #111113;
+            color: #ffffff;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #141416;
+        }
+
+        /* Form Controls inside Tables */
+        .tbl-input, .tbl-select {
+            background-color: transparent;
+            border: 1px solid transparent;
+            color: #ffffff;
+            padding: 0.35rem 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 0.82rem;
+            transition: all 0.2s;
+        }
+
+        .tbl-input:hover, .tbl-select:hover {
+            border-color: rgba(255,255,255,0.15);
+            background-color: #141416;
+        }
+
+        .tbl-input:focus, .tbl-select:focus {
+            border-color: #ffffff;
+            background-color: #000000;
+            outline: none;
+        }
+
+        /* Status Colors classes */
+        .status-dropdown {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.03em;
+            border-radius: 2px;
+            padding: 0.3rem 0.5rem;
+        }
+
+        .status-notstarted { color: #a1a1aa; background-color: rgba(161, 161, 170, 0.1); border: 1px solid rgba(161, 161, 170, 0.2); }
+        .status-inprogress { color: var(--amber); background-color: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .status-passed { color: var(--emerald); background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .status-failed { color: var(--rose); background-color: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); }
+        .status-blocked { color: var(--purple); background-color: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); }
+
+        .bug-severity {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+        }
+        .severity-critical { color: #f43f5e; }
+        .severity-high { color: #fb923c; }
+        .severity-medium { color: #fbbf24; }
+        .severity-low { color: #3b82f6; }
+
+        .add-btn {
+            background-color: transparent;
+            border: 1px dashed var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.6rem 1rem;
+            width: 100%;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-btn:hover {
+            border-color: #ffffff;
+            color: #ffffff;
+            background-color: rgba(255,255,255,0.02);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Prep-AI QA Execution Board</h1>
+            <p>Interactive QA Action Workflows & Verification Logs</p>
+        </div>
+        <button class="save-btn" onclick="saveWorkflowData()">Save Progress</button>
+    </header>
+
+    <!-- Metrics Cards -->
+    <section class="dashboard-metrics">
+        <div class="metric-card total">
+            <div class="metric-label">Total Tests</div>
+            <div class="metric-value" id="stat-total">0</div>
+        </div>
+        <div class="metric-card passed">
+            <div class="metric-label">Passed Tests</div>
+            <div class="metric-value" id="stat-passed" style="color: var(--emerald);">0</div>
+        </div>
+        <div class="metric-card failed">
+            <div class="metric-label">Failed Tests</div>
+            <div class="metric-value" id="stat-failed" style="color: var(--rose);">0</div>
+        </div>
+        <div class="metric-card bugs">
+            <div class="metric-label">Open Bugs</div>
+            <div class="metric-value" id="stat-bugs" style="color: var(--purple);">0</div>
+        </div>
+        <div class="metric-card readiness">
+            <div class="metric-label">Release Readiness</div>
+            <div class="metric-value" id="stat-readiness" style="color: var(--amber);">0%</div>
+        </div>
+    </section>
+
+    <!-- Filter Panel -->
+    <section class="filters-section">
+        <div class="filter-group">
+            <label for="filter-module">Module</label>
+            <select id="filter-module" class="filter-select" onchange="applyFilters()">
+                <option value="ALL">All Modules</option>
+                <option value="Registration">Registration</option>
+                <option value="Login">Login</option>
+                <option value="Dashboard">Dashboard</option>
+                <option value="Interview Session">Interview Session</option>
+                <option value="AI Feedback">AI Feedback</option>
+                <option value="Voice Recording">Voice Recording</option>
+                <option value="Firebase Database">Firebase Database</option>
+                <option value="Profile">Profile</option>
+                <option value="Settings">Settings</option>
+                <option value="Logout">Logout</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-priority">Priority</label>
+            <select id="filter-priority" class="filter-select" onchange="applyFilters()">
+                <option value="ALL">All Priorities</option>
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-status">Status</label>
+            <select id="filter-status" class="filter-select" onchange="applyFilters()">
+                <option value="ALL">All Statuses</option>
+                <option value="Not Started">Not Started</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Passed">Passed</option>
+                <option value="Failed">Failed</option>
+                <option value="Blocked">Blocked</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- TABLE 1: TEST EXECUTION TRACKER -->
+    <section class="section-container">
+        <div class="section-header">
+            <h2>TABLE 1: TEST EXECUTION TRACKER</h2>
+        </div>
+        <div class="table-wrapper">
+            <table id="tbl-tests">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Task ID</th>
+                        <th style="width: 180px;">Module</th>
+                        <th>Test Case</th>
+                        <th style="width: 100px;">Priority</th>
+                        <th style="width: 120px;">Assigned To</th>
+                        <th style="width: 110px;">Due Date</th>
+                        <th style="width: 130px;">Status</th>
+                        <th style="width: 200px;">Comments</th>
+                    </tr>
+                </thead>
+                <tbody id="tests-tbody">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+        <button class="add-btn" onclick="addNewTestCaseRow()">+ Add New Test Case Item</button>
+    </section>
+
+    <!-- TABLE 2: BUG TRACKING BOARD -->
+    <section class="section-container">
+        <div class="section-header">
+            <h2>TABLE 2: BUG TRACKING BOARD</h2>
+        </div>
+        <div class="table-wrapper">
+            <table id="tbl-bugs">
+                <thead>
+                    <tr>
+                        <th style="width: 90px;">Bug ID</th>
+                        <th style="width: 160px;">Module</th>
+                        <th>Bug Description</th>
+                        <th style="width: 100px;">Severity</th>
+                        <th style="width: 120px;">Assigned To</th>
+                        <th style="width: 120px;">Status</th>
+                        <th style="width: 200px;">Resolution Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="bugs-tbody">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+        <button class="add-btn" onclick="addNewBugRow()">+ Report New Bug</button>
+    </section>
+
+    <!-- TABLE 3: RETEST CHECKLIST -->
+    <section class="section-container">
+        <div class="section-header">
+            <h2>TABLE 3: RETEST CHECKLIST</h2>
+        </div>
+        <div class="table-wrapper">
+            <table id="tbl-retest">
+                <thead>
+                    <tr>
+                        <th style="width: 90px;">Retest ID</th>
+                        <th style="width: 100px;">Related Bug</th>
+                        <th>Retest Scenario</th>
+                        <th style="width: 110px;">Retest Date</th>
+                        <th style="width: 110px;">Result</th>
+                        <th style="width: 120px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="retest-tbody">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+        <button class="add-btn" onclick="addNewRetestRow()">+ Schedule Retest Item</button>
+    </section>
+
+    <!-- TABLE 4: RELEASE READINESS CHECKLIST -->
+    <section class="section-container">
+        <div class="section-header">
+            <h2>TABLE 4: RELEASE READINESS CHECKLIST</h2>
+        </div>
+        <div class="table-wrapper">
+            <table id="tbl-release">
+                <thead>
+                    <tr>
+                        <th style="width: 90px;">Check ID</th>
+                        <th>Validation Item</th>
+                        <th style="width: 120px;">Status</th>
+                        <th style="width: 140px;">Owner</th>
+                        <th style="width: 280px;">Notes / Verification Source</th>
+                    </tr>
+                </thead>
+                <tbody id="release-tbody">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <script>
+        // Pre-populated data for tests (30+ items)
+        const prepaiModules = ["Registration", "Login", "Dashboard", "Interview Session", "AI Feedback", "Voice Recording", "Firebase Database", "Profile", "Settings", "Logout"];
+        
+        let testCasesList = [
+            { id: "TS-001", module: "Registration", name: "Validate account creation with valid username, email, and password", priority: "Critical", assigned: "M. Polisetty", due: "2026-06-20", status: "Passed", comment: "Verified offline local storage mock signup." },
+            { id: "TS-002", module: "Registration", name: "Verify weak password warning (<6 characters)", priority: "High", assigned: "M. Polisetty", due: "2026-06-20", status: "Passed", comment: "Registration constraints validated." },
+            { id: "TS-003", module: "Registration", name: "Verify validation error when email lacks domain domain name", priority: "High", assigned: "M. Polisetty", due: "2026-06-20", status: "Passed", comment: "Checked standard error banner displays." },
+            { id: "TS-004", module: "Registration", name: "Check duplicate signup block for already registered workspace email", priority: "Medium", assigned: "M. Polisetty", due: "2026-06-21", status: "Passed", comment: "Duplicate submission blocks successfully." },
+            { id: "TS-005", module: "Login", name: "Verify successful authentication and redirect to dashboard tab", priority: "Critical", assigned: "M. Polisetty", due: "2026-06-20", status: "Passed", comment: "Authentication cookie/session set." },
+            { id: "TS-006", module: "Login", name: "Validate login warning card with incorrect standard credentials", priority: "High", assigned: "M. Polisetty", due: "2026-06-20", status: "Passed", comment: "Error banner validated in DOM." },
+            { id: "TS-007", module: "Login", name: "Verify local session persistence triggers after page refresh cycles", priority: "High", assigned: "M. Polisetty", due: "2026-06-21", status: "Passed", comment: "LocalStorage parsed correctly." },
+            { id: "TS-008", module: "Login", name: "Check password field type attribute remains hidden ('password')", priority: "Medium", assigned: "M. Polisetty", due: "2026-06-21", status: "Passed", comment: "Type attribute matches." },
+            { id: "TS-009", module: "Dashboard", name: "Verify dashboard welcome banner greets user dynamically", priority: "Medium", assigned: "M. Polisetty", due: "2026-06-22", status: "Passed", comment: "Header welcomes username." },
+            { id: "TS-010", module: "Dashboard", name: "Verify practice metrics show total interview coaching logs count", priority: "High", assigned: "M. Polisetty", due: "2026-06-22", status: "Passed", comment: "Stat counter parses array length." },
+            { id: "TS-011", module: "Dashboard", name: "Verify responsive bento grid wraps modules correctly on smaller screens", priority: "Medium", assigned: "M. Polisetty", due: "2026-06-22", status: "Passed", comment: "Responsive layouts check passed." },
+            { id: "TS-012", module: "Dashboard", name: "Verify average score card correctly computes aggregate parameters", priority: "Medium", assigned: "M. Polisetty", due: "2026-06-22", status: "Passed", comment: "Formula calculated accurately." },
+            { id: "TS-013", module: "Interview Session", name: "Verify selection of category updates session configuration parameters", priority: "High", assigned: "M. Polisetty", due: "2026-06-23", status: "Passed", comment: "Selected category loads." },
+            { id: "TS-014", module: "Interview Session", name: "Verify custom role text entry sets configuration parameter", priority: "High", assigned: "M. Polisetty", due: "2026-06-23", status: "Passed", comment: "Saves role input value." },
+            { id: "TS-015", module: "Interview Session", name: "Verify start interview button displays loading screen", priority: "Medium", assigned: "M. Polisetty", due: "2026-06-23", status: "Passed", comment: "Loader spin validated." },
+            { id: "TS-016", module: "Interview Session", name: "Verify questions are fetched dynamically from server or backup lists", priority: "Critical", assigned: "M. Polisetty", due: "2026-06-23", status: "Passed", comment: "Mock questions populated." },
+            { id: "TS-017", module: "Interview Session", name: "Verify custom answer textarea input fields record keys", priority: "High", assigned: "M. Polisetty", due: "2026-06-23", status: "Passed", comment: "Character counts update." },
+            { id: "TS-018", module: "AI Feedback", name: "Verify score gauges render tri-domain analysis ratings correctly", priority: "High", assigned: "M. Polisetty", due: "2026-06-24", status: "Passed", comment: "SVG gauges display scores." },
+            { id: "TS-019", module: "AI Feedback", name: "Verify constructive text recommendations show raw markdown tags", priority: "Medium", assigned: "M. Polisetty", due: "2026-06-24", status: "Passed", comment: "Markdowns parsed to HTML." },
+            { id: "TS-020", module: "Voice Recording", name: "Verify micro-interaction shows recording active timer counter", priority: "High", assigned: "M. Polisetty", due: "2026-06-25", status: "Failed", comment: "Timer freezes during long answers." },
+            { id: "TS-021", module: "Voice Recording", name: "Verify microphone authorization alerts display on prompt blocks", priority: "High", assigned: "M. Polisetty", due: "2026-06-25", status: "Passed", comment: "System prompt behaves correctly." },
+            { id: "TS-022", module: "Firebase Database", name: "Verify Firestore query lists previous session logs list", priority: "Critical", assigned: "M. Polisetty", due: "2026-06-26", status: "Passed", comment: "Query snapshot loaded." },
+            { id: "TS-023", module: "Firebase Database", name: "Verify writing a new session log updates Cloud store", priority: "Critical", assigned: "M. Polisetty", due: "2026-06-26", status: "Passed", comment: "Document reference created." },
+            { id: "TS-024", module: "Firebase Database", name: "Verify Firestore custom error handlers throw JSON errors", priority: "Medium", assigned: "M. Polisetty", due: "2026-06-26", status: "Passed", comment: "Exceptions throw correct codes." },
+            { id: "TS-025", module: "Profile", name: "Verify profile analytics line charts display aggregate history", priority: "Medium", assigned: "M. Polisetty", due: "2026-06-27", status: "Passed", comment: "Line chart canvas displays." },
+            { id: "TS-026", module: "Profile", name: "Verify profile welcome header contains matching user email address", priority: "Low", assigned: "M. Polisetty", due: "2026-06-27", status: "Passed", comment: "Checked text nodes." },
+            { id: "TS-027", module: "Settings", name: "Verify file watching toggle configuration saves context", priority: "Low", assigned: "M. Polisetty", due: "2026-06-28", status: "Passed", comment: "Saves flag value." },
+            { id: "TS-028", module: "Logout", name: "Verify logging out clears localStorage session objects", priority: "High", assigned: "M. Polisetty", due: "2026-06-20", status: "Passed", comment: "Clears session key." },
+            { id: "TS-029", module: "Logout", name: "Verify unauthorized route redirects to landing overlay", priority: "Critical", assigned: "M. Polisetty", due: "2026-06-20", status: "Passed", comment: "Route protected." },
+            { id: "TS-030", module: "Voice Recording", name: "Verify wave visualization moves during voice volume spikes", priority: "Medium", assigned: "M. Polisetty", due: "2026-06-25", status: "Failed", comment: "Canvas renders static waveform under certain node frameworks." }
+        ];
+
+        let bugsList = [
+            { id: "BUG-001", module: "Voice Recording", desc: "Timer freezes during long interview answers", severity: "High", assigned: "M. Polisetty", status: "Open", resolution: "Investigating thread bottlenecks." },
+            { id: "BUG-002", module: "Voice Recording", desc: "Wave visualization stays static under specific frameworks", severity: "Medium", assigned: "M. Polisetty", status: "In Progress", resolution: "Adjusting audio node listeners." }
+        ];
+
+        let retestsList = [
+            { id: "RT-001", bugId: "BUG-001", scenario: "Retest timer counter under 5+ minutes continuous speech", date: "2026-06-26", result: "Failed", status: "In Progress" },
+            { id: "RT-002", bugId: "BUG-002", scenario: "Audit wave volume animation renders on chrome mobile", date: "2026-06-26", result: "Passed", status: "Passed" }
+        ];
+
+        let releaseChecklist = [
+            { id: "RC-001", item: "E2E Testing Suite runs locally and in CI pipeline", status: "Passed", owner: "M. Polisetty", notes: "108/108 passing test cases locally verified." },
+            { id: "RC-002", item: "Firebase firestore database security rules check", status: "Passed", owner: "M. Polisetty", notes: "Rules configured for strict userId validation." },
+            { id: "RC-003", item: "Verify sensitive keys and endpoints are hidden from source", status: "Passed", owner: "M. Polisetty", notes: "No raw API tokens or configuration files exposed in HTML." },
+            { id: "RC-004", item: "Build and deploy production bundle locally", status: "In Progress", owner: "M. Polisetty", notes: "Running npm run build audits." },
+            { id: "RC-005", item: "Verify browser log console contains no credentials", status: "Passed", owner: "M. Polisetty", notes: "Checked console warnings and logs." }
+        ];
+
+        // On Load initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            // Retrieve from localStorage if exists
+            const savedTests = localStorage.getItem('prepai_tests');
+            const savedBugs = localStorage.getItem('prepai_bugs');
+            const savedRetests = localStorage.getItem('prepai_retests');
+            const savedRelease = localStorage.getItem('prepai_release');
+
+            if (savedTests) testCasesList = JSON.parse(savedTests);
+            if (savedBugs) bugsList = JSON.parse(savedBugs);
+            if (savedRetests) retestsList = JSON.parse(savedRetests);
+            if (savedRelease) releaseChecklist = JSON.parse(savedRelease);
+
+            renderAllTables();
+        });
+
+        function renderAllTables() {
+            renderTestTable();
+            renderBugTable();
+            renderRetestTable();
+            renderReleaseTable();
+            recalculateMetrics();
+        }
+
+        // TABLE 1: Render Test Tracker
+        function renderTestTable() {
+            const tbody = document.getElementById('tests-tbody');
+            tbody.innerHTML = '';
+
+            const modFilter = document.getElementById('filter-module').value;
+            const priFilter = document.getElementById('filter-priority').value;
+            const statFilter = document.getElementById('filter-status').value;
+
+            testCasesList.forEach((t, idx) => {
+                // Apply filters
+                if (modFilter !== 'ALL' && t.module !== modFilter) return;
+                if (priFilter !== 'ALL' && t.priority !== priFilter) return;
+                if (statFilter !== 'ALL' && t.status !== statFilter) return;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center; font-weight: bold;">${t.id}</td>
+                    <td>
+                        <select class="tbl-select" onchange="updateTestField(${idx}, 'module', this.value)">
+                            ${prepaiModules.map(m => `<option value="${m}" ${t.module === m ? 'selected' : ''}>${m}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="tbl-input" value="${t.name}" onchange="updateTestField(${idx}, 'name', this.value)">
+                    </td>
+                    <td>
+                        <select class="tbl-select" onchange="updateTestField(${idx}, 'priority', this.value)">
+                            <option value="Critical" ${t.priority === 'Critical' ? 'selected' : ''}>Critical</option>
+                            <option value="High" ${t.priority === 'High' ? 'selected' : ''}>High</option>
+                            <option value="Medium" ${t.priority === 'Medium' ? 'selected' : ''}>Medium</option>
+                            <option value="Low" ${t.priority === 'Low' ? 'selected' : ''}>Low</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="tbl-input" value="${t.assigned}" onchange="updateTestField(${idx}, 'assigned', this.value)">
+                    </td>
+                    <td>
+                        <input type="date" class="tbl-input" value="${t.due}" onchange="updateTestField(${idx}, 'due', this.value)">
+                    </td>
+                    <td>
+                        <select class="status-dropdown ${getStatusClass(t.status)}" onchange="updateTestStatus(${idx}, this.value)">
+                            <option value="Not Started" ${t.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
+                            <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Passed" ${t.status === 'Passed' ? 'selected' : ''}>Passed</option>
+                            <option value="Failed" ${t.status === 'Failed' ? 'selected' : ''}>Failed</option>
+                            <option value="Blocked" ${t.status === 'Blocked' ? 'selected' : ''}>Blocked</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="tbl-input" value="${t.comment}" onchange="updateTestField(${idx}, 'comment', this.value)">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // TABLE 2: Render Bug Board
+        function renderBugTable() {
+            const tbody = document.getElementById('bugs-tbody');
+            tbody.innerHTML = '';
+
+            bugsList.forEach((b, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center; font-weight: bold; color: var(--rose);">${b.id}</td>
+                    <td>
+                        <select class="tbl-select" onchange="updateBugField(${idx}, 'module', this.value)">
+                            ${prepaiModules.map(m => `<option value="${m}" ${b.module === m ? 'selected' : ''}>${m}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="tbl-input" value="${b.desc}" onchange="updateBugField(${idx}, 'desc', this.value)">
+                    </td>
+                    <td class="bug-severity ${getSeverityClass(b.severity)}">
+                        <select class="tbl-select" style="font-weight: 700; color: inherit;" onchange="updateBugField(${idx}, 'severity', this.value)">
+                            <option value="Critical" ${b.severity === 'Critical' ? 'selected' : ''}>Critical</option>
+                            <option value="High" ${b.severity === 'High' ? 'selected' : ''}>High</option>
+                            <option value="Medium" ${b.severity === 'Medium' ? 'selected' : ''}>Medium</option>
+                            <option value="Low" ${b.severity === 'Low' ? 'selected' : ''}>Low</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="tbl-input" value="${b.assigned}" onchange="updateBugField(${idx}, 'assigned', this.value)">
+                    </td>
+                    <td>
+                        <select class="tbl-select" style="font-weight: bold;" onchange="updateBugField(${idx}, 'status', this.value)">
+                            <option value="Open" ${b.status === 'Open' ? 'selected' : ''}>Open</option>
+                            <option value="In Progress" ${b.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Resolved" ${b.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                            <option value="Closed" ${b.status === 'Closed' ? 'selected' : ''}>Closed</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="tbl-input" value="${b.resolution}" onchange="updateBugField(${idx}, 'resolution', this.value)">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // TABLE 3: Render Retests
+        function renderRetestTable() {
+            const tbody = document.getElementById('retest-tbody');
+            tbody.innerHTML = '';
+
+            retestsList.forEach((r, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center; font-weight: bold; color: var(--purple);">${r.id}</td>
+                    <td>
+                        <input type="text" class="tbl-input" style="font-weight: bold; text-align: center;" value="${r.bugId}" onchange="updateRetestField(${idx}, 'bugId', this.value)">
+                    </td>
+                    <td>
+                        <input type="text" class="tbl-input" value="${r.scenario}" onchange="updateRetestField(${idx}, 'scenario', this.value)">
+                    </td>
+                    <td>
+                        <input type="date" class="tbl-input" value="${r.date}" onchange="updateRetestField(${idx}, 'date', this.value)">
+                    </td>
+                    <td>
+                        <select class="tbl-select" style="font-weight: 700;" onchange="updateRetestField(${idx}, 'result', this.value)">
+                            <option value="Passed" ${r.result === 'Passed' ? 'selected' : ''}>Passed</option>
+                            <option value="Failed" ${r.result === 'Failed' ? 'selected' : ''}>Failed</option>
+                            <option value="Untested" ${r.result === 'Untested' ? 'selected' : ''}>Untested</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="tbl-select" style="font-weight: bold;" onchange="updateRetestField(${idx}, 'status', this.value)">
+                            <option value="Not Started" ${r.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
+                            <option value="In Progress" ${r.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Passed" ${r.status === 'Passed' ? 'selected' : ''}>Passed</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // TABLE 4: Render Release Items
+        function renderReleaseTable() {
+            const tbody = document.getElementById('release-tbody');
+            tbody.innerHTML = '';
+
+            releaseChecklist.forEach((c, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center; font-weight: bold;">${c.id}</td>
+                    <td><strong>${c.item}</strong></td>
+                    <td>
+                        <select class="status-dropdown ${getStatusClass(c.status)}" onchange="updateReleaseStatus(${idx}, this.value)">
+                            <option value="Not Started" ${c.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
+                            <option value="In Progress" ${c.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Passed" ${c.status === 'Passed' ? 'selected' : ''}>Passed</option>
+                            <option value="Failed" ${c.status === 'Failed' ? 'selected' : ''}>Failed</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="tbl-input" value="${c.owner}" onchange="updateReleaseField(${idx}, 'owner', this.value)">
+                    </td>
+                    <td>
+                        <input type="text" class="tbl-input" value="${c.notes}" onchange="updateReleaseField(${idx}, 'notes', this.value)">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Functions to update fields
+        function updateTestField(idx, field, val) {
+            testCasesList[idx][field] = val;
+            recalculateMetrics();
+        }
+
+        function updateTestStatus(idx, val) {
+            const oldStatus = testCasesList[idx].status;
+            testCasesList[idx].status = val;
+
+            // Auto-bug creation when a test case fails
+            if (val === 'Failed' && oldStatus !== 'Failed') {
+                const newBugId = `BUG-${String(bugsList.length + 1).padStart(3, '0')}`;
+                const newRetestId = `RT-${String(retestsList.length + 1).padStart(3, '0')}`;
+                
+                // Add Bug
+                bugsList.push({
+                    id: newBugId,
+                    module: testCasesList[idx].module,
+                    desc: `Failed verification: ${testCasesList[idx].name}`,
+                    severity: testCasesList[idx].priority,
+                    assigned: testCasesList[idx].assigned,
+                    status: "Open",
+                    resolution: "Auto-logged from Test board failure."
+                });
+
+                // Add Retest Checklist row linked to Bug
+                retestsList.push({
+                    id: newRetestId,
+                    bugId: newBugId,
+                    scenario: `Retest: ${testCasesList[idx].name}`,
+                    date: new Date().toISOString().split('T')[0],
+                    result: "Untested",
+                    status: "Not Started"
+                });
+
+                renderBugTable();
+                renderRetestTable();
+            }
+
+            renderTestTable();
+            recalculateMetrics();
+        }
+
+        function updateBugField(idx, field, val) {
+            bugsList[idx][field] = val;
+            recalculateMetrics();
+        }
+
+        function updateRetestField(idx, field, val) {
+            retestsList[idx][field] = val;
+            recalculateMetrics();
+        }
+
+        function updateReleaseField(idx, field, val) {
+            releaseChecklist[idx][field] = val;
+            recalculateMetrics();
+        }
+
+        function updateReleaseStatus(idx, val) {
+            releaseChecklist[idx].status = val;
+            renderReleaseTable();
+            recalculateMetrics();
+        }
+
+        // Dashboard Metrics computation
+        function recalculateMetrics() {
+            const total = testCasesList.length;
+            const passed = testCasesList.filter(t => t.status === 'Passed').length;
+            const failed = testCasesList.filter(t => t.status === 'Failed').length;
+            const openBugs = bugsList.filter(b => b.status === 'Open' || b.status === 'In Progress').length;
+            
+            const readinessPct = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-passed').innerText = passed;
+            document.getElementById('stat-failed').innerText = failed;
+            document.getElementById('stat-bugs').innerText = openBugs;
+            document.getElementById('stat-readiness').innerText = `${readinessPct}%`;
+        }
+
+        // Filter Actions
+        function applyFilters() {
+            renderTestTable();
+        }
+
+        // Table insertion buttons
+        function addNewTestCaseRow() {
+            const nextIdNum = testCasesList.length + 1;
+            const idStr = `TS-${String(nextIdNum).padStart(3, '0')}`;
+            testCasesList.push({
+                id: idStr,
+                module: "Dashboard",
+                name: "New Custom Verification Scenario",
+                priority: "Medium",
+                assigned: "M. Polisetty",
+                due: new Date().toISOString().split('T')[0],
+                status: "Not Started",
+                comment: ""
+            });
+            renderTestTable();
+            recalculateMetrics();
+        }
+
+        function addNewBugRow() {
+            const nextIdNum = bugsList.length + 1;
+            const idStr = `BUG-${String(nextIdNum).padStart(3, '0')}`;
+            bugsList.push({
+                id: idStr,
+                module: "Dashboard",
+                desc: "Describe bug details here",
+                severity: "Medium",
+                assigned: "M. Polisetty",
+                status: "Open",
+                resolution: ""
+            });
+            renderBugTable();
+            recalculateMetrics();
+        }
+
+        function addNewRetestRow() {
+            const nextIdNum = retestsList.length + 1;
+            const idStr = `RT-${String(nextIdNum).padStart(3, '0')}`;
+            retestsList.push({
+                id: idStr,
+                bugId: "BUG-001",
+                scenario: "Retest custom checklist row description",
+                date: new Date().toISOString().split('T')[0],
+                result: "Untested",
+                status: "Not Started"
+            });
+            renderRetestTable();
+        }
+
+        // Save data to localStorage
+        function saveWorkflowData() {
+            localStorage.setItem('prepai_tests', JSON.stringify(testCasesList));
+            localStorage.setItem('prepai_bugs', JSON.stringify(bugsList));
+            localStorage.setItem('prepai_retests', JSON.stringify(retestsList));
+            localStorage.setItem('prepai_release', JSON.stringify(releaseChecklist));
+            alert("QA Action Workflows saved successfully to Local Storage!");
+        }
+
+        // Helper classes builders
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Not Started': return 'status-notstarted';
+                case 'In Progress': return 'status-inprogress';
+                case 'Passed': return 'status-passed';
+                case 'Failed': return 'status-failed';
+                case 'Blocked': return 'status-blocked';
+                default: return '';
+            }
+        }
+
+        function getSeverityClass(severity) {
+            switch(severity) {
+                case 'Critical': return 'severity-critical';
+                case 'High': return 'severity-high';
+                case 'Medium': return 'severity-medium';
+                case 'Low': return 'severity-low';
+                default: return '';
+            }
+        }
+    </script>
+</body>
+</html>
