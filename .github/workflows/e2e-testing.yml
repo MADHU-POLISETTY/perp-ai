@@ -40,8 +40,14 @@ jobs:
           cache: 'pip'
 
       - name: Install Python Test Dependencies
+        continue-on-error: true
         run: |
-          pip install -r requirements.txt
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "requirements.txt not found, installing common dependencies"
+            pip install selenium>=4.20.0 openpyxl>=3.1.2
+          fi
 
       - name: Install Google Chrome Browser
         uses: browser-actions/setup-chrome@v1
@@ -51,16 +57,26 @@ jobs:
       - name: Start React Frontend Server
         run: |
           npm run dev > frontend.log 2>&1 &
+          FRONTEND_PID=$!
+          echo "Frontend PID: $FRONTEND_PID"
           echo "Waiting for frontend dev server to start..."
-          sleep 3
-          # Check if server is running on port 5173 or 3000
-          if lsof -Pi :5173 -sTCP:LISTEN -t >/dev/null 2>&1; then
-            echo "Frontend running on http://localhost:5173"
-            npx wait-on http://localhost:5173 --timeout 60000
-          else
-            echo "Frontend running on http://localhost:3000"
-            npx wait-on http://localhost:3000 --timeout 60000
-          fi
+          sleep 5
+          
+          # Try to connect to port 5173 first (Vite default), then 3000 (fallback)
+          for i in {1..12}; do
+            if nc -z localhost 5173 2>/dev/null; then
+              echo "✓ Frontend server detected on http://localhost:5173"
+              npx wait-on http://localhost:5173 --timeout 60000
+              break
+            elif nc -z localhost 3000 2>/dev/null; then
+              echo "✓ Frontend server detected on http://localhost:3000"
+              npx wait-on http://localhost:3000 --timeout 60000
+              break
+            else
+              echo "Waiting for frontend server... (attempt $i/12)"
+              sleep 5
+            fi
+          done
 
       - name: Run Selenium E2E Test Suite
         run: |
@@ -70,9 +86,12 @@ jobs:
         if: always()
         run: |
           mkdir -p public-pages
-          cp tests/test_report.html public-pages/index.html
-          # Copy Excel report and screenshots so they are downloadable from pages URL
-          cp tests/test_report.xlsx public-pages/
+          if [ -f tests/test_report.html ]; then
+            cp tests/test_report.html public-pages/index.html
+          fi
+          if [ -f tests/test_report.xlsx ]; then
+            cp tests/test_report.xlsx public-pages/
+          fi
           if [ -d "tests/screenshots" ]; then
             cp -r tests/screenshots public-pages/
           fi
