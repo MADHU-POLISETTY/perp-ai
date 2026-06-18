@@ -12,3 +12,6 @@ __pycache__/
 tests/screenshots/
 **/__pycache__/
 app/build/
+~$*.xlsx
+~$*
+
