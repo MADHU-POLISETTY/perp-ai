@@ -315,7 +315,8 @@ def main():
         status_class = "pass-badge" if r["status"] == "PASS" else "fail-badge"
         screenshot_html = ""
         if r["screenshot"]:
-            screenshot_html = f'<br/><a href="{r["screenshot"]}" target="_blank" class="screenshot-link">\ud83d\udcf1 View Failure Screenshot</a>'
+            screenshot_link = r["screenshot"]
+            screenshot_html = f'<br/><a href="{screenshot_link}" target="_blank" class="screenshot-link">📱 View Failure Screenshot</a>'
         
         error_html = ""
         if r["error"]:
@@ -330,7 +331,7 @@ def main():
             <td style="text-align: center;"><span class="{status_class}">{r["status"]}</span></td>
             <td style="text-align: center;">{r["time"]}s</td>
             <td>
-                {error_html if r["error"] else '<span class="success-note">\u2713 Verified</span>'}
+                {error_html if r["error"] else '<span class="success-note">✓ Verified</span>'}
                 {screenshot_html}
             </td>
         </tr>
