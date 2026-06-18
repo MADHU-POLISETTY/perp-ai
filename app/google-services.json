@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1088388524538",
+    "project_id": "perp-ai-dfc20",
+    "storage_bucket": "perp-ai-dfc20.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1088388524538:android:5a9ca6513f3161c26c1c43",
+        "android_client_info": {
+          "package_name": "com.example.perp_ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEHwwXV59dGeuUqLFSBdzD78dUsIfRyzs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

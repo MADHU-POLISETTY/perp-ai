@@ -1,0 +1,14 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+.idea/
+.gradle/
+__pycache__/
+tests/screenshots/
+**/__pycache__/
+app/build/

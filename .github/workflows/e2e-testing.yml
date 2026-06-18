@@ -1,0 +1,89 @@
+name: PrepWise AI E2E Testing CI/CD
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Frontend Dependencies
+        run: |
+          npm ci || npm install
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python Test Dependencies
+        run: |
+          pip install selenium openpyxl
+
+      - name: Install Google Chrome Browser
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Start React Frontend Server
+        run: |
+          npm run dev &
+          echo "Waiting for dev server to start..."
+          npx wait-on http://localhost:5173 --timeout 60000
+
+      - name: Run Selenium E2E Test Suite
+        run: |
+          python tests/run_tests.py
+
+      - name: Prepare GitHub Pages Deployment Dir
+        if: always()
+        run: |
+          mkdir -p public-pages
+          cp tests/test_report.html public-pages/index.html
+          # Copy Excel report and screenshots so they are downloadable from pages URL
+          cp tests/test_report.xlsx public-pages/
+          if [ -d "tests/screenshots" ]; then
+            cp -r tests/screenshots public-pages/
+          fi
+
+      - name: Upload Test Report Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PrepWise-AI-E2E-Reports
+          path: |
+            tests/test_report.html
+            tests/test_report.xlsx
+            tests/screenshots/
+          retention-days: 14
+
+      - name: Deploy to GitHub Pages
+        if: always() && github.ref == 'refs/heads/master'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public-pages
+          force_orphan: true
