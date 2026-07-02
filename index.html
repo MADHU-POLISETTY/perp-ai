@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepWise AI - Automation E2E Test Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: #0f0f11;
+            --border-color: #1f1f23;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --emerald-green: #10b981;
+            --rose-red: #f43f5e;
+            --amber-yellow: #f59e0b;
+        }
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2.5rem;
+            line-height: 1.5;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: 0 auto 2rem auto;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .brand-badge {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            margin-left: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        .timestamp {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .dashboard-stats {
+            max-width: 1200px;
+            margin: 0 auto 2.5rem auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 0px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .stat-card.total::before { background-color: var(--text-secondary); }
+        .stat-card.pass::before { background-color: var(--emerald-green); }
+        .stat-card.fail::before { background-color: var(--rose-red); }
+        .stat-card.rate::before { background-color: var(--amber-yellow); }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+
+        .controls-container {
+            max-width: 1200px;
+            margin: 0 auto 1.5rem auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-bar {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: #ffffff;
+            padding: 0.75rem 1rem;
+            font-family: inherit;
+            font-size: 0.875rem;
+            width: 300px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar:focus {
+            border-color: #ffffff;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background-color: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+
+        .table-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        th {
+            background-color: #121215;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #161619;
+        }
+
+        .category-badge {
+            background-color: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #ffffff;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-radius: 2px;
+        }
+
+        .pass-badge {
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--emerald-green);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 2px;
+        }
+
+        .fail-badge {
+            background-color: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            color: var(--rose-red);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 2px;
+        }
+
+        .success-note {
+            color: var(--emerald-green);
+            font-style: italic;
+            font-size: 0.8rem;
+        }
+
+        .screenshot-link {
+            color: var(--rose-red);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 0.5rem;
+            border-bottom: 1px dashed var(--rose-red);
+        }
+
+        .screenshot-link:hover {
+            color: #ffffff;
+            border-color: #ffffff;
+        }
+
+        .error-stack {
+            background-color: #180c0e;
+            border: 1px solid rgba(244, 63, 94, 0.1);
+            color: #fda4af;
+            padding: 0.75rem;
+            font-family: monospace;
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin: 0.5rem 0 0 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <div class="brand-title">PrepWise <span class="brand-badge">AI</span></div>
+            <div style="font-size: 0.8rem; color: var(--emerald-green); font-weight: bold; margin-top: 0.25rem;">E2E Automation Testing Suite</div>
+        </div>
+        <div class="timestamp">
+            Executed: <span>2026-07-02 09:20:41</span>
+        </div>
+    </header>
+
+    <section class="dashboard-stats">
+        <div class="stat-card total">
+            <div class="stat-label">Total Executed</div>
+            <div class="stat-value">108</div>
+        </div>
+        <div class="stat-card pass">
+            <div class="stat-label">Passed Cases</div>
+            <div class="stat-value" style="color: var(--emerald-green);">108</div>
+        </div>
+        <div class="stat-card fail">
+            <div class="stat-label">Failed Cases</div>
+            <div class="stat-value" style="color: var(--rose-red);">0</div>
+        </div>
+        <div class="stat-card rate">
+            <div class="stat-label">Success Rate</div>
+            <div class="stat-value" style="color: var(--amber-yellow);">100.0%</div>
+        </div>
+    </section>
+
+    <div class="controls-container">
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search scenario or module..." onkeyup="filterTable()">
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="setFilter('ALL')">All</button>
+            <button class="filter-btn" onclick="setFilter('PASS')">Pass</button>
+            <button class="filter-btn" onclick="setFilter('FAIL')">Fail</button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th style="width: 80px; text-align: center;">ID</th>
+                    <th style="width: 150px; text-align: center;">Category</th>
+                    <th style="width: 200px;">Module</th>
+                    <th style="width: 350px;">Scenario</th>
+                    <th style="width: 100px; text-align: center;">Status</th>
+                    <th style="width: 100px; text-align: center;">Duration</th>
+                    <th>Execution Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-001</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Answer Field Present</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-002</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Audio Recording Toggle</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-003</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Candidate Analytics Details</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-004</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Characters Counter</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-005</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Detailed Feedback Expand</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-006</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Final Submission</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.02s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-007</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile History Delete Swipe</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-008</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile History Deletion</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-009</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile History Item Counts</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-010</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Next Question Click</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-011</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Previous Question Disabled</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-012</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Question Card Renders</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-013</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Question Generation Loader</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-014</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Question Index Indicator</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-015</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Results Communication Card</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-016</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Results Confidence Card</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-017</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Results Technical Card</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-018</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Resume Audit Submit</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.02s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-019</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Resume Dropzone Box</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-020</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Role Input</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-021</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Role Placeholder</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-022</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Session Initialization</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-023</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Start Coaching Button Present</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-024</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Theme Check Container</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-025</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Features</td>
+            <td><strong>Mobile Typing Answer</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-026</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Android Back Button Navigation</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.021s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-027</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Google Popup Overlay Mobile</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.021s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-028</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Hamburger Close On Link Click</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.021s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-029</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Hamburger Menu Button Present</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-030</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Hamburger Menu Toggle Close</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-031</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Hamburger Menu Toggle Open</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-032</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Landing Cta Mobile Click</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.02s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-033</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Landing Hero Mobile Padding</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-034</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile Header Brand Text</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-035</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile History Item Tap</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.02s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-036</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile Keyboard Hide</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-037</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile Menu Signout</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.02s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-038</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile Orientation Landscape</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-039</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile Orientation Portrait</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-040</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile Results Gauge Size</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-041</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile Session Cancel</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.02s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-042</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile Swipe Gesture Horizontal</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-043</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile Tap On Dashboard Card</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-044</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Mobile Viewport Setting</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-045</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Navigation Links Hidden By Default</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-046</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Navigation Links Visible When Menu Open</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-047</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Pinch Zoom Prevention</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-048</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Profile Scroll Limit</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-049</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Screen Height Width Ratio Landscape</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-050</td>
+            <td style="text-align: center;"><span class="category-badge">Appium (Mobile)</span></td>
+            <td>Mobile Navigation</td>
+            <td><strong>Text Overlap Avoidance</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-051</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify auth container is displayed.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-052</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify error messages are cleared when switching modes.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-053</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify auth page loads successfully.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-054</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify the title of the auth page.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-055</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify heading text contains PrepWise.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-056</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify back link button is displayed.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-057</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify back link returns to landing page.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-058</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify the default prefilled email is correct.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-059</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify email input field is displayed.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-060</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify error shows when email misses at sign.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-061</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify error shows when email is missing domain.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-062</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify error shows on empty username and password.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-063</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify Google auth button is displayed.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-064</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify Google Sign In redirects to dashboard.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-065</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify submit button is displayed.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-066</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify logging out takes user back to landing page.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.036s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-067</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify password input field is displayed.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-068</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify password field is obscured/password type.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-069</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify error shows when password is too short.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-070</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify button text in register mode.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-071</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Interview Session</td>
+            <td><strong>Verify auth session persists after page refresh.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.031s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-072</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify login redirects to dashboard upon success.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.026s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-073</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify registration redirects to dashboard upon success.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.031s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-074</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify mode switcher is displayed.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-075</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify toggling back to login mode works.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-076</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify toggle to register mode updates header.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-077</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify dashboard is protected and redirects back when unauthenticated.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.041s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-078</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Authentication</td>
+            <td><strong>Verify login with incorrect password displays error.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.021s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-079</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Interview Session</td>
+            <td><strong>Verify answer response entry text field saves keys.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.021s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-080</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify average score trend metric card displays.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-081</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify input limits handles large responses cleanly.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.021s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-082</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify browser back/forward history doesn't break app flow.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.026s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-083</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Candidate Analytics</td>
+            <td><strong>Verify charts and graphs render on Profile analytics page.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-084</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify dashboard page loads successfully.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-085</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify responsive CSS layout classes present on core grid.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-086</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify dashboard header welcome message displays.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-087</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify source HTML doesn't expose raw server keys or private URLs.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-088</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Histories & Logs</td>
+            <td><strong>Verify history table displays list of previous logs.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-089</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Histories & Logs</td>
+            <td><strong>Verify confirmation trigger allows deleting past results.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.021s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-090</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify the interview module grid counts match.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-091</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Interview Session</td>
+            <td><strong>Verify questions load successfully during active practice.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-092</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify custom target role config input field works.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.021s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-093</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify last score index metric card displays.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-094</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Histories & Logs</td>
+            <td><strong>Verify navigation link redirects to history log dashboard.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-095</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify navigation link redirects to interview session configure.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-096</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Candidate Analytics</td>
+            <td><strong>Verify navigation link redirects to candidate profile.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-097</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Resume Analyzer</td>
+            <td><strong>Verify navigation link redirects to resume analyzer page.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-098</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify starting interview coach requires target role configuration.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.026s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-099</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Evaluation Results</td>
+            <td><strong>Verify AI text feedback displays on evaluation dashboard.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-100</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Evaluation Results</td>
+            <td><strong>Verify results scores charts render correctly on completion.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.01s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-101</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Resume Analyzer</td>
+            <td><strong>Verify drag-and-drop file interface is present.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-102</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Resume Analyzer</td>
+            <td><strong>Verify copy-pasted plain text analysis inputs save text.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.021s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-103</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify credentials or raw auth keys aren't exposed in browser logs.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-104</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify sidebar navigation links are present.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-105</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify app sidebar container is displayed.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-106</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify clicking signout logo redirects to landing page.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.015s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-107</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Interview Session</td>
+            <td><strong>Verify session configurations allow initializing a mock round.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.021s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="text-align: center; font-weight: bold;">TS-108</td>
+            <td style="text-align: center;"><span class="category-badge">Selenium (Desktop)</span></td>
+            <td>Dashboard</td>
+            <td><strong>Verify total practices counter card displays.</strong></td>
+            <td style="text-align: center;"><span class="pass-badge">PASS</span></td>
+            <td style="text-align: center;">0.005s</td>
+            <td>
+                <span class="success-note">✓ Verified</span>
+                
+            </td>
+        </tr>
+        
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let currentFilter = 'ALL';
+
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            
+            // Toggle active classes on buttons
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            filterTable();
+        }
+
+        function filterTable() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('resultsTable');
+            const trs = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < trs.length; i++) {
+                const tr = trs[i];
+                const tds = tr.getElementsByTagName('td');
+                if (tds.length === 0) continue;
+
+                const moduleText = tds[2].textContent.toLowerCase();
+                const scenarioText = tds[3].textContent.toLowerCase();
+                const statusText = tds[4].textContent.trim().toUpperCase();
+
+                const matchesSearch = moduleText.includes(filter) || scenarioText.includes(filter);
+                
+                let matchesStatus = true;
+                if (currentFilter === 'PASS') {
+                    matchesStatus = statusText === 'PASS';
+                } else if (currentFilter === 'FAIL') {
+                    matchesStatus = statusText.startsWith('FAIL');
+                }
+
+                if (matchesSearch && matchesStatus) {
+                    tr.style.display = '';
+                } else {
+                    tr.style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
