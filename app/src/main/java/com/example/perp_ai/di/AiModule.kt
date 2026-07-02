@@ -20,7 +20,7 @@ object AiModule {
         // IMPORTANT: In a real app, store the API key securely (e.g., BuildConfig or secrets.xml)
         // You can get an API key at https://aistudio.google.com/
         return GenerativeModel(
-            modelName = "gemini-2.0-flash",
+            modelName = "gemini-1.5-flash",
             apiKey = BuildConfig.GEMINI_API_KEY
         )
     }

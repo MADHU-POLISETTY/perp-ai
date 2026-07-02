@@ -35,10 +35,14 @@ class AiRepositoryImpl @Inject constructor(
             val feedback = parseFeedback(responseText)
             Resource.Success(feedback)
         } catch (e: Exception) {
-            val errorMessage = if (e.message?.contains("503") == true || e.message?.contains("UNAVAILABLE") == true) {
-                "AI service is currently busy. Please try again in a few minutes."
-            } else {
-                e.message ?: "An unknown error occurred"
+            val errorMessage = when {
+                e.message?.contains("503") == true || e.message?.contains("UNAVAILABLE") == true -> {
+                    "AI service is currently busy. Please try again in a few minutes."
+                }
+                e.message?.contains("429") == true || e.message?.contains("quota") == true || e.message?.contains("limit") == true -> {
+                    "API quota exceeded. Please wait a moment or try again later."
+                }
+                else -> e.message ?: "An unknown error occurred"
             }
             Resource.Error(errorMessage)
         }
