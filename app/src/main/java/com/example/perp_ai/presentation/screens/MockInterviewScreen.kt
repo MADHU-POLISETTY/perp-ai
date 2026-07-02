@@ -1,6 +1,5 @@
 package com.example.perp_ai.presentation.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -15,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,10 +35,8 @@ fun MockInterviewScreen(
     category: String,
     viewModel: MockInterviewViewModel = hiltViewModel()
 ) {
-    val session by viewModel.session.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val evaluationResult by viewModel.evaluationResult.collectAsState()
-
+    val state by viewModel.uiState.collectAsState()
+    
     var currentQuestionIndex by remember { mutableIntStateOf(0) }
     var answerText by remember { mutableStateOf("") }
     var timeLeft by remember { mutableLongStateOf(TimeUnit.MINUTES.toMillis(15)) }
@@ -49,10 +45,11 @@ fun MockInterviewScreen(
         viewModel.startInterview(type, category)
     }
 
-    LaunchedEffect(evaluationResult) {
-        evaluationResult?.let {
+    LaunchedEffect(state.interviewResult) {
+        state.interviewResult?.let {
             navController.navigate(Screen.InterviewResult.createRoute(it.id)) {
                 popUpTo(Screen.Home.route)
+                launchSingleTop = true
             }
         }
     }
@@ -64,15 +61,15 @@ fun MockInterviewScreen(
         }
     }
 
-    if (isLoading || session == null) {
+    if (state.isLoading || state.questions.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
 
-    val currentQuestion = session!!.questions[currentQuestionIndex]
-    val progress = (currentQuestionIndex + 1).toFloat() / session!!.questions.size
+    val currentQuestion = state.questions[currentQuestionIndex]
+    val progress = (currentQuestionIndex + 1).toFloat() / state.questions.size
 
     Scaffold(
         topBar = {
@@ -108,7 +105,7 @@ fun MockInterviewScreen(
             Spacer(modifier = Modifier.height(24.dp))
             
             Text(
-                text = "Question ${currentQuestionIndex + 1} of ${session!!.questions.size}",
+                text = "Question ${currentQuestionIndex + 1} of ${state.questions.size}",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -167,7 +164,7 @@ fun MockInterviewScreen(
                     onClick = { 
                         if (currentQuestionIndex > 0) {
                             currentQuestionIndex--
-                            answerText = session!!.userAnswers[session!!.questions[currentQuestionIndex].id] ?: ""
+                            answerText = state.userAnswers[state.questions[currentQuestionIndex].id] ?: ""
                         }
                     },
                     enabled = currentQuestionIndex > 0,
@@ -181,9 +178,9 @@ fun MockInterviewScreen(
 
                 Button(
                     onClick = { 
-                        if (currentQuestionIndex < session!!.questions.size - 1) {
+                        if (currentQuestionIndex < state.questions.size - 1) {
                             currentQuestionIndex++
-                            answerText = session!!.userAnswers[session!!.questions[currentQuestionIndex].id] ?: ""
+                            answerText = state.userAnswers[state.questions[currentQuestionIndex].id] ?: ""
                         } else {
                             viewModel.finishInterview()
                         }
@@ -191,8 +188,8 @@ fun MockInterviewScreen(
                     modifier = Modifier.weight(1f).height(56.dp),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text(if (currentQuestionIndex == session!!.questions.size - 1) "Submit" else "Next")
-                    if (currentQuestionIndex < session!!.questions.size - 1) {
+                    Text(if (currentQuestionIndex == state.questions.size - 1) "Submit" else "Next")
+                    if (currentQuestionIndex < state.questions.size - 1) {
                         Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.padding(start = 8.dp))
                     }
                 }

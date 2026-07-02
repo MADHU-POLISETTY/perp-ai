@@ -130,12 +130,7 @@ fun HomeScreen(navController: NavHostController) {
 
             items(recommendedTopics) { topic ->
                 RecommendedItem(topic) {
-                    navController.navigate(
-                        Screen.MockInterview.createRoute(
-                            InterviewType.TECHNICAL.name,
-                            topic.title.replace(" ", "_").uppercase()
-                        )
-                    )
+                    navController.navigate("quiz/${topic.title}")
                 }
             }
             
@@ -156,11 +151,11 @@ fun SectionTitle(title: String) {
 @Composable
 fun CategoryGrid(navController: NavHostController) {
     val categories = listOf(
-        CategoryItemData("HR Interview", Icons.Default.People, Color(0xFF4CAF50), Screen.MockInterview.createRoute(InterviewType.HR.name, "GENERAL")),
+        CategoryItemData("HR Interview", Icons.Default.People, Color(0xFF4CAF50), "quiz/General Interview"),
         CategoryItemData("Technical", Icons.Default.Code, Color(0xFF2196F3), Screen.TechnicalModule.route),
         CategoryItemData("Aptitude", Icons.Default.Calculate, Color(0xFFFF9800), Screen.AptitudeModule.route),
         CategoryItemData("AI Mock", Icons.Default.SmartToy, Color(0xFFF44336), Screen.MockInterview.createRoute(InterviewType.AI_MOCK.name, "GENERAL")),
-        CategoryItemData("Coding", Icons.Default.Terminal, Color(0xFF673AB7), Screen.CodingInterview.route),
+        CategoryItemData("Coding", Icons.Default.Terminal, Color(0xFF673AB7), "quiz/Coding"),
         CategoryItemData("GD Prep", Icons.Default.Groups, Color(0xFF009688), Screen.GroupDiscussion.route)
     )
 

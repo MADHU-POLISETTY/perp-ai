@@ -47,13 +47,3 @@ data class InterviewResult(
     val feedback: String = "",
     val timestamp: Long = System.currentTimeMillis()
 )
-
-data class ResumeAnalysis(
-    val id: String = UUID.randomUUID().toString(),
-    val userId: String = "",
-    val fileName: String = "",
-    val score: Int = 0,
-    val suggestions: List<String> = emptyList(),
-    val skillsDetected: List<String> = emptyList(),
-    val timestamp: Long = System.currentTimeMillis()
-)

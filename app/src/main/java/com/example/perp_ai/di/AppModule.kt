@@ -2,8 +2,13 @@ package com.example.perp_ai.di
 
 import com.example.perp_ai.data.repository.AuthRepositoryImpl
 import com.example.perp_ai.data.repository.InterviewRepositoryImpl
+import com.example.perp_ai.data.repository.QuizRepositoryImpl
+import com.example.perp_ai.data.repository.ResumeRepositoryImpl
+import com.example.perp_ai.domain.repository.AiRepository
 import com.example.perp_ai.domain.repository.AuthRepository
 import com.example.perp_ai.domain.repository.InterviewRepository
+import com.example.perp_ai.domain.repository.QuizRepository
+import com.example.perp_ai.domain.repository.ResumeRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -39,5 +44,20 @@ object AppModule {
     @Singleton
     fun provideInterviewRepository(firestore: FirebaseFirestore): InterviewRepository {
         return InterviewRepositoryImpl(firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideQuizRepository(firestore: FirebaseFirestore): QuizRepository {
+        return QuizRepositoryImpl(firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideResumeRepository(
+        firestore: FirebaseFirestore,
+        aiRepository: AiRepository
+    ): ResumeRepository {
+        return ResumeRepositoryImpl(firestore, aiRepository)
     }
 }

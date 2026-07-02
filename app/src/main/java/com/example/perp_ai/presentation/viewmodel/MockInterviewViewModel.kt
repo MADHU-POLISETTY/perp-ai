@@ -2,75 +2,150 @@ package com.example.perp_ai.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.perp_ai.core.common.VoiceToTextParser
 import com.example.perp_ai.domain.models.*
+import com.example.perp_ai.domain.repository.AiRepository
 import com.example.perp_ai.domain.repository.AuthRepository
 import com.example.perp_ai.domain.repository.InterviewRepository
-import com.example.perp_ai.domain.usecases.EvaluateInterviewUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class MockInterviewViewModel @Inject constructor(
     private val interviewRepository: InterviewRepository,
     private val authRepository: AuthRepository,
-    private val evaluateInterviewUseCase: EvaluateInterviewUseCase
+    private val aiRepository: AiRepository,
+    val voiceToTextParser: VoiceToTextParser
 ) : ViewModel() {
 
-    private val _session = MutableStateFlow<InterviewSession?>(null)
-    val session: StateFlow<InterviewSession?> = _session
+    private val _uiState = MutableStateFlow(MockInterviewUiState())
+    val uiState: StateFlow<MockInterviewUiState> = _uiState.asStateFlow()
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
-
-    private val _evaluationResult = MutableStateFlow<InterviewResult?>(null)
-    val evaluationResult: StateFlow<InterviewResult?> = _evaluationResult
+    init {
+        viewModelScope.launch {
+            voiceToTextParser.state.collect { voiceState ->
+                _uiState.update { it.copy(
+                    isSpeaking = voiceState.isSpeaking,
+                    spokenText = voiceState.spokenText,
+                    error = voiceState.error
+                ) }
+            }
+        }
+    }
 
     fun startInterview(type: String, category: String) {
         viewModelScope.launch {
-            _isLoading.value = true
+            _uiState.update { it.copy(isLoading = true) }
             val interviewType = try { InterviewType.valueOf(type) } catch (e: Exception) { InterviewType.TECHNICAL }
             
             when (val result = interviewRepository.getQuestions(interviewType, category)) {
                 is Resource.Success -> {
-                    _session.value = InterviewSession(
-                        type = interviewType,
-                        category = category,
-                        questions = result.data ?: emptyList()
-                    )
+                    _uiState.update { it.copy(
+                        questions = result.data ?: emptyList(),
+                        isLoading = false
+                    ) }
                 }
                 is Resource.Error -> {
-                    _error.value = result.message
+                    _uiState.update { it.copy(
+                        error = result.message,
+                        isLoading = false
+                    ) }
                 }
                 else -> {}
             }
-            _isLoading.value = false
         }
     }
 
+    fun toggleListening() {
+        if (_uiState.value.isSpeaking) {
+            voiceToTextParser.stopListening()
+        } else {
+            voiceToTextParser.startListening()
+        }
+    }
+
+    fun onAnswerChange(answer: String) {
+        _uiState.update { it.copy(spokenText = answer) }
+    }
+
     fun submitAnswer(questionId: String, answer: String) {
-        val currentSession = _session.value ?: return
-        val updatedAnswers = currentSession.userAnswers.toMutableMap()
-        updatedAnswers[questionId] = answer
-        _session.value = currentSession.copy(userAnswers = updatedAnswers)
+        _uiState.update { it.copy(
+            userAnswers = it.userAnswers + (questionId to answer)
+        ) }
     }
 
     fun finishInterview() {
-        val currentSession = _session.value ?: return
+        submitInterview(_uiState.value.userAnswers)
+    }
+
+    fun nextQuestion() {
+        val currentState = _uiState.value
+        val currentQuestion = currentState.currentQuestion ?: return
+        
+        val updatedAnswers = currentState.userAnswers.toMutableMap()
+        updatedAnswers[currentQuestion.id] = currentState.spokenText
+
+        if (currentState.isLastQuestion) {
+            submitInterview(updatedAnswers)
+        } else {
+            _uiState.update { it.copy(
+                userAnswers = updatedAnswers,
+                currentQuestionIndex = currentState.currentQuestionIndex + 1,
+                spokenText = ""
+            ) }
+        }
+    }
+
+    fun retrySubmit() {
+        submitInterview(_uiState.value.userAnswers)
+    }
+
+    private fun submitInterview(answers: Map<String, String>) {
         viewModelScope.launch {
-            _isLoading.value = true
-            val result = evaluateInterviewUseCase(currentSession)
-            val userId = authRepository.currentUser?.uid ?: ""
-            val finalResult = result.copy(userId = userId)
+            _uiState.update { it.copy(isLoading = true) }
             
-            interviewRepository.saveInterviewResult(finalResult)
-            _evaluationResult.value = finalResult
-            _isLoading.value = false
+            val userId = authRepository.currentUser?.uid ?: ""
+            val questionsAndAnswers = answers.entries.joinToString("\n") { "${it.key}: ${it.value}" }
+            
+            // Generate AI Feedback for the whole interview or last question
+            val feedbackResult = aiRepository.generateFeedback(
+                question = "Overall Interview Performance",
+                userAnswer = questionsAndAnswers
+            )
+
+            when (feedbackResult) {
+                is Resource.Success -> {
+                    val feedback = feedbackResult.data!!
+                    val result = InterviewResult(
+                        id = UUID.randomUUID().toString(),
+                        userId = userId,
+                        score = feedback.score,
+                        feedback = feedback.summary,
+                        timestamp = System.currentTimeMillis()
+                    )
+                    
+                    interviewRepository.saveInterviewResult(result)
+                    _uiState.update { it.copy(
+                        isLoading = false,
+                        aiFeedback = feedback,
+                        interviewResult = result,
+                        isInterviewFinished = true
+                    ) }
+                }
+                is Resource.Error -> {
+                    _uiState.update { it.copy(
+                        isLoading = false,
+                        error = feedbackResult.message
+                    ) }
+                }
+                else -> {}
+            }
         }
     }
 }

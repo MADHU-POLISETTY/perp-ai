@@ -59,12 +59,7 @@ fun AptitudeModuleScreen(navController: NavHostController) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 items(sections) { section ->
                     AptitudeSectionCard(section) {
-                        navController.navigate(
-                            Screen.MockInterview.createRoute(
-                                InterviewType.APTITUDE.name,
-                                section.title.uppercase()
-                            )
-                        )
+                        navController.navigate("quiz/${section.title}")
                     }
                 }
             }

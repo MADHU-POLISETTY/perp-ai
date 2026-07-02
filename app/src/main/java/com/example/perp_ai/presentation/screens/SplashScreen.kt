@@ -27,9 +27,14 @@ fun SplashScreen(
 ) {
     LaunchedEffect(key1 = true) {
         delay(1500)
-        navController.navigate(Screen.Home.route) {
-            popUpTo(Screen.Splash.route) { inclusive = true }
-
+        if (viewModel.isUserLoggedIn) {
+            navController.navigate(Screen.Home.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
+        } else {
+            navController.navigate(Screen.Login.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
         }
     }
 

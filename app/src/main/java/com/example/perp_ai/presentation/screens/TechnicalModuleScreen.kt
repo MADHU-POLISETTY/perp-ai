@@ -71,12 +71,7 @@ fun TechnicalModuleScreen(navController: NavHostController) {
             ) {
                 items(categories) { category ->
                     TechCategoryCard(category) {
-                        navController.navigate(
-                            Screen.MockInterview.createRoute(
-                                InterviewType.TECHNICAL.name,
-                                category.name
-                            )
-                        )
+                        navController.navigate("quiz/${category.name}")
                     }
                 }
             }

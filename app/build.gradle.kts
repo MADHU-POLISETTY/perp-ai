@@ -63,7 +63,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.material)
     implementation(libs.androidx.navigation.compose)
-    
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
@@ -79,6 +79,9 @@ dependencies {
     
     // Coil
     implementation(libs.coilCompose)
+
+    // Gemini AI
+    implementation(libs.generativeai)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
